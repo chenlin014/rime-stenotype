@@ -3,7 +3,7 @@
 
 schema:
   schema_id: stenotype
-  name: stenotype
+  name: Stenotype
   version: '0.0'
   author:
     - Bryan Chen <1chen0bryan@gmail.com>
@@ -11,7 +11,7 @@ schema:
 switches:
   - name: ascii_mode
     reset: 0
-    states: [ Steno, a ]
+    states: [ ON, OFF ]
 
 engine:
   processors:
@@ -32,7 +32,7 @@ engine:
     - fallback_segmentor
   translators:
     - punct_translator
-    - script_translator
+    - lua_translator@*stenotype*tran
     - reverse_lookup_translator
 
 editor:
@@ -40,7 +40,7 @@ editor:
     BackSpace: back_syllable
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-*/"
+  alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#-*/"
   algebra:
     - xform|$|/|
 
@@ -51,6 +51,11 @@ chord_composer:
   alphabet: "1234567890qawsedrfcvtgyhnmujikolp;['"
   algebra:
     - "xlit|1234567890qawsedrfcvtgyhnmujikolp;['|##########sstkpwhrAO****EUFRPBLGTSDZ|"
+    - "xform/s+/s/"
     - "xform/#+/#/"
-    - "xform/*+/*/"
-    - "xform/ss/s/"
+    - "xform/[*]+/*/"
+    - "xform/^([FRPBLGTSDZ])/-$1/"
+    - "xform/([#stkpwhr])([FRPBLGTSDZ])/$1-$2/"
+    - "xlit|stkpwhr|STKPWHR|"
+  output_format:
+    - "xform|$|/|"
