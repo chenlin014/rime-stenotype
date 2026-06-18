@@ -40,22 +40,22 @@ editor:
     BackSpace: back_syllable
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#-*/"
+  alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ#-*/"
   algebra:
     - xform|$|/|
 
 translator:
   dictionary: stenotype-plover
+  enable_encode: false
+  enable_sentence: false
 
 chord_composer:
-  alphabet: "1234567890qawsedrfcvtgyhnmujikolp;['"
+  alphabet: "qawsedrfcvtgyhnmujikolp;['"
   algebra:
-    - "xlit|1234567890qawsedrfcvtgyhnmujikolp;['|##########sstkpwhrAO****EUFRPBLGTSDZ|"
-    - "xform/s+/s/"
-    - "xform/#+/#/"
-    - "xform/[*]+/*/"
+    - "xlit|qawsedrfcvtgyhnmujikolp;['|#stkpwhrAO****EUFRPBLGTSDZ|"
     - "xform/^([FRPBLGTSDZ])/-$1/"
     - "xform/([#stkpwhr])([FRPBLGTSDZ])/$1-$2/"
+    - "xform/[*]+/*/"
     - "xlit|stkpwhr|STKPWHR|"
   output_format:
     - "xform|$|/|"
