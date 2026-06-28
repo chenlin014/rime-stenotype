@@ -1,5 +1,22 @@
 local key_sim = require("ydotool")
 
+local function query_w_limit(trans, input, seg, limit)
+	limit = limit or 1
+
+	local t = trans:query(input, seg)
+	if not t then return {} end
+
+	local cands = {}
+	local cand_count = 0
+	for cand in t:iter() do
+		table.insert(cands, cand)
+		cand_count = cand_count + 1
+		if cand_count >= limit then break end
+	end
+
+	return cands
+end
+
 local function format_output(text, env)
 	local front_pad = ""
 	if env.space_before then front_pad = " " end
@@ -15,6 +32,12 @@ end
 
 local output_funcs = {}
 
+output_funcs["{#[^(]+}"] = function(text, env)
+	local key = text:gsub("^{#", ""):gsub("}$", "")
+	env.engine.context:set_option("sending_key", true)
+	key_sim.press_key(key)
+end
+
 output_funcs["{^[^^]+}"] = function(text, env)
 	if env.prev_output:match(" $") then
 		key_sim.press_key("backspace")
@@ -22,6 +45,13 @@ output_funcs["{^[^^]+}"] = function(text, env)
 
 	env.space_before = false
 	return format_output(text:gsub("^{^", ""):gsub("}$", ""), env)
+end
+
+output_funcs["{[^^]+^}"] = function(text, env)
+	env.space_after = false
+	local out = format_output(text:gsub("^{", ""):gsub("%^}$", ""), env)
+	env.space_before = false
+	return out
 end
 
 local function output(text, env)
@@ -52,23 +82,6 @@ local function output(text, env)
 	env.engine:commit_text(out)
 end
 
-local function query_w_limit(trans, input, seg, limit)
-	limit = limit or 1
-
-	local t = trans:query(input, seg)
-	if not t then return {} end
-
-	local cands = {}
-	local cand_count = 0
-	for cand in t:iter() do
-		table.insert(cands, cand)
-		cand_count = cand_count + 1
-		if cand_count >= limit then break end
-	end
-
-	return cands
-end
-
 local T = {}
 
 function T.init(env)
@@ -84,6 +97,7 @@ end
 
 function T.func(input, seg, env)
 	if not input:match("/$") then return end
+	if env.engine.context:get_option("sending_key") then return end
 
 	local context = env.engine.context
 
@@ -110,8 +124,8 @@ function T.func(input, seg, env)
 	end
 
 	if #cands == 1 and cands[1].comment == "" then
-		context:clear()
 		output(cands[1].text, env)
+		context:clear()
 	else
 		if extra then
 			context:clear()
