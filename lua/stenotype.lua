@@ -18,6 +18,12 @@ local function query_w_limit(trans, input, seg, limit)
 end
 
 local function format_output(text, env)
+	local out = text:gsub("\\\\", "\0")
+	                :gsub("\\n", "\n")
+	                :gsub("\\t", "\t")
+	                :gsub("\\r", "\r")
+	                :gsub("\0", "\\")
+
 	local front_pad = ""
 	if env.space_before then front_pad = " " end
 
@@ -27,7 +33,9 @@ local function format_output(text, env)
 	env.space_before = env.engine.context:get_option("space_before")
 	env.space_after = env.engine.context:get_option("space_after")
 
-	return front_pad .. text .. back_pad
+	out = front_pad .. out .. back_pad
+
+	return out
 end
 
 local output_funcs = {}
@@ -55,6 +63,8 @@ output_funcs["{[^^]+^}"] = function(text, env)
 end
 
 local function output(text, env)
+	env.outputting = true
+
 	env.prev_text = text
 	local out = text
 
@@ -73,6 +83,8 @@ local function output(text, env)
 	out = format_output(out, env)
 
 	::output::
+	env.outputting = false
+
 	if not out then
 		env.prev_output = ""
 		return
@@ -90,6 +102,7 @@ function T.init(env)
 	env.prev_output = ""
 	env.space_before = env.engine.context:get_option("space_before")
 	env.space_after = env.engine.context:get_option("space_after")
+	env.outputting = false
 end
 
 function T.fini(env)
@@ -97,7 +110,7 @@ end
 
 function T.func(input, seg, env)
 	if not input:match("/$") then return end
-	if env.engine.context:get_option("sending_key") then return end
+	if env.outputting then return end
 
 	local context = env.engine.context
 

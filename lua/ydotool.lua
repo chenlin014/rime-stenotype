@@ -14,8 +14,11 @@ local M = {}
 
 function M.press_key(key)
 	local code = get_keycode(key)
-	if not code then return end
+
+	if not code then return false end
+
 	os.execute(string.format("ydotool key %d:1 %d:0", code, code))
+	return true
 end
 
 return M
